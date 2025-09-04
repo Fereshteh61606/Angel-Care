@@ -1,78 +1,87 @@
-import React, { useState } from 'react';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+// src/components/AdminLogin.tsx
+import React, { useState } from "react";
 import { useAdmin } from '../contexts/AdminContext';
-import { useLanguage } from '../contexts/LanguageContext';
 
-export const AdminLogin: React.FC = () => {
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+interface AdminLoginProps {
+  onLoginSuccess: () => void;
+}
+
+const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess }) => {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAdmin();
-  const { t } = useLanguage();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(password);
-    if (!success) {
-      setError('Invalid password');
-      setPassword('');
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const success = login(password);
+      if (success) {
+        onLoginSuccess();
+      } else {
+        setError("Incorrect password");
+      }
+    } catch (err) {
+      setError("Login failed. Please try again.");
+      console.error("Login error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Admin Access</h1>
-          <p className="text-gray-600 mt-2">Enter admin password to view all data</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 px-4">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 w-full max-w-md">
+        <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">
+          Admin Login
+        </h2>
+        
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+              Password
+            </label>
             <input
-              type={showPassword ? 'text' : 'password'}
+              id="password"
+              type="password"
+              placeholder="Enter admin password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                setError('');
+                setError("");
               }}
-              placeholder="Admin Password"
-              className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border-2 border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent transition-all duration-200 text-gray-700 pr-12"
+              className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               required
+              disabled={isLoading}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
           </div>
 
           {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
+            <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl border border-red-200">
+              {error}
+            </div>
           )}
 
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold rounded-xl hover:from-teal-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            disabled={isLoading}
+            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login as Admin
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-          <p className="text-sm text-blue-800 text-center">
-            <strong>Default Password:</strong> admin123
-          </p>
-          <p className="text-xs text-blue-600 text-center mt-1">
-            (Change this in production)
+        <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+          <p className="text-sm text-blue-700 text-center">
+            For security reasons, admin access requires authentication.
           </p>
         </div>
       </div>
     </div>
   );
 };
+
+export default AdminLogin;

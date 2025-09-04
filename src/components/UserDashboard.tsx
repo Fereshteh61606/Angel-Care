@@ -1,27 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, QrCode, Eye, Download, Printer, User, Lock } from 'lucide-react';
-import { PersonInfo } from '../types';
-import { getPersonsData } from '../utils/storage';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAdmin } from '../contexts/AdminContext';
-import { LanguageSelector } from './LanguageSelector';
-import { generateQRCode } from '../utils/qrcode';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Plus, QrCode, Eye, Download, Printer, User, Lock } from "lucide-react";
+import { PersonInfo } from "../types";
+import { getPersonsData } from "../utils/storage";
+import { useLanguage } from "../contexts/LanguageContext";
+import { LanguageSelector } from "./LanguageSelector";
+import { generateQRCode } from "../utils/qrcode";
 
-export const UserDashboard: React.FC = () => {
+interface UserDashboardProps {
+  onAdminLogin: () => void;
+}
+
+export const UserDashboard: React.FC<UserDashboardProps> = ({ onAdminLogin }) => {
   const { t } = useLanguage();
-  const { login } = useAdmin();
   const [userPersons, setUserPersons] = useState<PersonInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminError, setAdminError] = useState('');
 
   useEffect(() => {
     const loadUserData = () => {
       // For now, we'll show all data to users. In a real app, you'd filter by user ID
       const data = getPersonsData();
-      setUserPersons(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setUserPersons(
+        data.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
       setLoading(false);
     };
 
@@ -32,8 +36,8 @@ export const UserDashboard: React.FC = () => {
     try {
       const qrData = `${window.location.origin}/view/${person.id}`;
       const qrCodeDataURL = await generateQRCode(qrData);
-      
-      const printWindow = window.open('', '_blank');
+
+      const printWindow = window.open("", "_blank");
       if (printWindow) {
         printWindow.document.write(`
           <html>
@@ -92,8 +96,8 @@ export const UserDashboard: React.FC = () => {
         }, 500);
       }
     } catch (error) {
-      console.error('Error generating QR code for printing:', error);
-      alert('Error generating QR code for printing');
+      console.error("Error generating QR code for printing:", error);
+      alert("Error generating QR code for printing");
     }
   };
 
@@ -101,25 +105,14 @@ export const UserDashboard: React.FC = () => {
     try {
       const qrData = `${window.location.origin}/view/${person.id}`;
       const qrCodeDataURL = await generateQRCode(qrData);
-      
-      const link = document.createElement('a');
+
+      const link = document.createElement("a");
       link.download = `qr-${person.name}-${person.lastName}-${Date.now()}.png`;
       link.href = qrCodeDataURL;
       link.click();
     } catch (error) {
-      console.error('Error downloading QR code:', error);
-      alert('Error downloading QR code');
-    }
-  };
-
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = login(adminPassword);
-    if (!success) {
-      setAdminError('Invalid password');
-      setAdminPassword('');
-    } else {
-      setShowAdminLogin(false);
+      console.error("Error downloading QR code:", error);
+      alert("Error downloading QR code");
     }
   };
 
@@ -138,12 +131,14 @@ export const UserDashboard: React.FC = () => {
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-3">
             <QrCode className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-slate-800">Personal QR Information</h1>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Personal QR Information
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <LanguageSelector />
             <button
-              onClick={() => setShowAdminLogin(true)}
+              onClick={onAdminLogin}
               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-600 to-gray-700 text-white font-medium rounded-xl hover:from-slate-700 hover:to-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Lock className="w-4 h-4" />
@@ -152,70 +147,15 @@ export const UserDashboard: React.FC = () => {
           </div>
         </header>
 
-        {/* Admin Login Modal */}
-        {showAdminLogin && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Lock className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-slate-800">Admin Access</h2>
-                <p className="text-slate-600 mt-2">Enter admin password to view all patient data</p>
-              </div>
-
-              <form onSubmit={handleAdminLogin} className="space-y-4">
-                <input
-                  type="password"
-                  value={adminPassword}
-                  onChange={(e) => {
-                    setAdminPassword(e.target.value);
-                    setAdminError('');
-                  }}
-                  placeholder="Admin Password"
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all duration-200 text-slate-700"
-                  required
-                />
-
-                {adminError && (
-                  <p className="text-red-500 text-sm text-center">{adminError}</p>
-                )}
-
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    Login
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAdminLogin(false);
-                      setAdminPassword('');
-                      setAdminError('');
-                    }}
-                    className="px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-300 transition-all duration-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-                <p className="text-sm text-blue-800 text-center">
-                  <strong>Default Password:</strong> admin123
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Welcome Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-slate-800 mb-4">Welcome to Your Personal QR System</h2>
-          <p className="text-lg text-slate-600 mb-8">Add your information and get your personal QR code</p>
-          
+          <h2 className="text-3xl font-bold text-slate-800 mb-4">
+            Welcome to Your Personal QR System
+          </h2>
+          <p className="text-lg text-slate-600 mb-8">
+            Add your information and get your personal QR code
+          </p>
+
           <Link
             to="/add"
             className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-2xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -227,15 +167,21 @@ export const UserDashboard: React.FC = () => {
 
         {/* User's Information */}
         <div className="max-w-4xl mx-auto">
-          <h3 className="text-2xl font-bold text-slate-800 mb-6">Your Information</h3>
-          
+          <h3 className="text-2xl font-bold text-slate-800 mb-6">
+            Your Information
+          </h3>
+
           {userPersons.length === 0 ? (
             <div className="text-center py-16">
               <div className="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-6">
                 <User className="w-12 h-12 text-slate-400" />
               </div>
-              <h4 className="text-xl font-semibold text-slate-600 mb-4">No information added yet</h4>
-              <p className="text-slate-500 mb-6">Add your personal information to get started</p>
+              <h4 className="text-xl font-semibold text-slate-600 mb-4">
+                No information added yet
+              </h4>
+              <p className="text-slate-500 mb-6">
+                Add your personal information to get started
+              </p>
               <Link
                 to="/add"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-200"
@@ -263,18 +209,41 @@ export const UserDashboard: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-600">
-                        <p><span className="font-medium">{t.form.personalCode}:</span> {person.personalCode}</p>
-                        <p><span className="font-medium">{t.form.phoneNumber}:</span> {person.phoneNumber}</p>
-                        {person.status && <p><span className="font-medium">{t.form.status}:</span> {person.status}</p>}
-                        <p><span className="font-medium">Created:</span> {new Date(person.createdAt).toLocaleDateString()}</p>
+                        <p>
+                          <span className="font-medium">
+                            {t.form.personalCode}:
+                          </span>{" "}
+                          {person.personalCode}
+                        </p>
+                        <p>
+                          <span className="font-medium">
+                            {t.form.phoneNumber}:
+                          </span>{" "}
+                          {person.phoneNumber}
+                        </p>
+                        {person.status && (
+                          <p>
+                            <span className="font-medium">
+                              {t.form.status}:
+                            </span>{" "}
+                            {person.status}
+                          </p>
+                        )}
+                        <p>
+                          <span className="font-medium">Created:</span>{" "}
+                          {new Date(person.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      
+
                       {person.diseaseOrProblem && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                           <p className="text-sm text-red-700">
-                            <span className="font-medium">{t.form.diseaseOrProblem}:</span> {person.diseaseOrProblem}
+                            <span className="font-medium">
+                              {t.form.diseaseOrProblem}:
+                            </span>{" "}
+                            {person.diseaseOrProblem}
                           </p>
                         </div>
                       )}
@@ -288,7 +257,7 @@ export const UserDashboard: React.FC = () => {
                         <Eye className="w-4 h-4" />
                         View
                       </Link>
-                      
+
                       <button
                         onClick={() => handlePrintQR(person)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -296,7 +265,7 @@ export const UserDashboard: React.FC = () => {
                       >
                         <Printer className="w-4 h-4" />
                       </button>
-                      
+
                       <button
                         onClick={() => handleDownloadQR(person)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium rounded-xl hover:from-cyan-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -315,7 +284,9 @@ export const UserDashboard: React.FC = () => {
         {/* Instructions */}
         <div className="mt-12 max-w-2xl mx-auto">
           <div className="bg-blue-50/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-200">
-            <h4 className="text-lg font-semibold text-blue-800 mb-3">How to use your QR code:</h4>
+            <h4 className="text-lg font-semibold text-blue-800 mb-3">
+              How to use your QR code:
+            </h4>
             <ul className="text-blue-700 space-y-2 text-sm list-disc list-inside">
               <li>• Print or download your QR code</li>
               <li>• Keep it with you for emergency situations</li>

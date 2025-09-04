@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Users, QrCode, Shield, Lock } from 'lucide-react';
+import { Users, QrCode, Shield } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { useAdmin } from '../contexts/AdminContext';
 import { UserDashboard } from '../components/UserDashboard';
-import { AdminLogin } from '../components/AdminLogin';
+import AdminLogin from '../components/AdminLogin'; // Fixed import
 
 export const HomePage: React.FC = () => {
   const { t } = useLanguage();
@@ -14,12 +14,12 @@ export const HomePage: React.FC = () => {
 
   // Show admin login if requested
   if (showAdminLogin && !isAdmin) {
-    return <AdminLogin />;
+    return <AdminLogin onLoginSuccess={() => setShowAdminLogin(false)} />;
   }
 
   // Show user dashboard for regular users
   if (!showAdminLogin && !isAdmin) {
-    return <UserDashboard />;
+    return <UserDashboard onAdminLogin={() => setShowAdminLogin(true)} />; // Added onAdminLogin prop
   }
 
   // Admin Dashboard

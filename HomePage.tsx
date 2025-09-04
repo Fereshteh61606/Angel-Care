@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Users, QrCode, Shield, Lock } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { LanguageSelector } from '../components/LanguageSelector';
+import { useLanguage } from './contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { UserDashboard } from '../components/UserDashboard';
 import { AdminLogin } from '../components/AdminLogin';

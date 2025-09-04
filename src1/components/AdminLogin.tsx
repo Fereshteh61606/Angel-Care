@@ -66,7 +66,7 @@ export const AdminLogin: React.FC = () => {
 
         <div className="mt-6 p-4 bg-blue-50 rounded-xl">
           <p className="text-sm text-blue-800 text-center">
-            <strong>Default Password:</strong> admin123
+            <strong>Default Password:</strong> adminadmin
           </p>
           <p className="text-xs text-blue-600 text-center mt-1">
             (Change this in production)

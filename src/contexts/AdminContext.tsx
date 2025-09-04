@@ -1,25 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+// src/contexts/AdminContext.tsx
+import React, { createContext, useState, ReactNode, useContext } from "react";
 
+// نوع داده‌های context
 interface AdminContextType {
   isAdmin: boolean;
   login: (password: string) => boolean;
   logout: () => void;
 }
 
-const AdminContext = createContext<AdminContextType | undefined>(undefined);
+// ساخت context
+export const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-// Simple admin password - in production, use proper authentication
-const ADMIN_PASSWORD = 'admin123';
-
+// Provider
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(() => {
-    return localStorage.getItem('admin_authenticated') === 'true';
-  });
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const login = (password: string): boolean => {
-    if (password === ADMIN_PASSWORD) {
+  const login = (password: string) => {
+    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD; // از .env خوانده می‌شود
+    if (password === adminPassword) {
       setIsAdmin(true);
-      localStorage.setItem('admin_authenticated', 'true');
       return true;
     }
     return false;
@@ -27,7 +26,6 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const logout = () => {
     setIsAdmin(false);
-    localStorage.removeItem('admin_authenticated');
   };
 
   return (
@@ -37,10 +35,11 @@ export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
-export const useAdmin = (): AdminContextType => {
+// Custom hook برای راحتی استفاده از context
+export const useAdmin = () => {
   const context = useContext(AdminContext);
   if (!context) {
-    throw new Error('useAdmin must be used within an AdminProvider');
+    throw new Error("useAdmin must be used within an AdminProvider");
   }
   return context;
 };
