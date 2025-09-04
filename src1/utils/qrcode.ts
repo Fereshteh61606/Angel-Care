@@ -6,7 +6,7 @@ export const generateQRCode = async (data: string): Promise<string> => {
       width: 256,
       margin: 2,
       color: {
-        dark: '#0F766E',
+        dark: '#374151',
         light: '#FFFFFF'
       },
       errorCorrectionLevel: 'M'

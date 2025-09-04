@@ -20,10 +20,10 @@ export const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
       <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-teal-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-xl flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800">Admin Access</h1>
@@ -40,7 +40,7 @@ export const AdminLogin: React.FC = () => {
                 setError('');
               }}
               placeholder="Admin Password"
-              className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border-2 border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent transition-all duration-200 text-gray-700 pr-12"
+              className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border-2 border-purple-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition-all duration-200 text-gray-700 pr-12"
               required
             />
             <button
@@ -58,7 +58,7 @@ export const AdminLogin: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold rounded-xl hover:from-teal-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="w-full px-6 py-3 bg-gradient-to-r from-purple-400 to-indigo-400 text-white font-semibold rounded-xl hover:from-purple-500 hover:to-indigo-500 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Login as Admin
           </button>

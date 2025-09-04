@@ -24,9 +24,9 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   const inputClasses = `
     w-full px-4 py-3 bg-white/70 backdrop-blur-sm border-2 rounded-xl 
-    focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent 
+    focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent 
     transition-all duration-200 text-gray-700 placeholder-gray-400
-    ${error ? 'border-red-300' : 'border-teal-200'}
+    ${error ? 'border-red-300' : 'border-purple-200'}
     ${isRTL ? 'text-right' : 'text-left'}
   `;
 
