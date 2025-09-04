@@ -25,6 +25,11 @@ export const AddPersonPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Generate better unique ID
+  const generateUniqueId = (): string => {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+  };
+
   // Generate automatic personal code on component mount
   useEffect(() => {
     const generatePersonalCode = (): string => {
@@ -67,13 +72,18 @@ export const AddPersonPage: React.FC = () => {
     
     try {
       const newPerson: PersonInfo = {
-        id: Date.now().toString(),
+        id: generateUniqueId(), // Use the better ID generator
         ...formData,
         createdAt: new Date().toISOString(),
       };
 
+      console.log('Saving person with ID:', newPerson.id); // Debug log
       savePersonInfo(newPerson);
-      navigate(`/view/${newPerson.id}`);
+      
+      // Wait a moment to ensure data is saved
+      setTimeout(() => {
+        navigate(`/view/${newPerson.id}`);
+      }, 100);
     } catch (error) {
       console.error('Error saving person:', error);
     } finally {
@@ -130,7 +140,7 @@ export const AddPersonPage: React.FC = () => {
                 onChange={(value) => updateField('personalCode', value)}
                 required
                 error={errors.personalCode}
-                readOnly={true} // Make it read-only since it's auto-generated
+                readOnly={true}
               />
               
               <FormField
