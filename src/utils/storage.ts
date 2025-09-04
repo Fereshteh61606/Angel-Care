@@ -4,7 +4,20 @@ const STORAGE_KEY = 'personal_info_data';
 
 export const savePersonInfo = (person: PersonInfo): void => {
   const existingData = getPersonsData();
-  const updatedData = [...existingData, person];
+  
+  // Check if person with same ID already exists
+  const existingIndex = existingData.findIndex(p => p.id === person.id);
+  
+  let updatedData;
+  if (existingIndex !== -1) {
+    // Update existing person
+    updatedData = [...existingData];
+    updatedData[existingIndex] = person;
+  } else {
+    // Add new person
+    updatedData = [...existingData, person];
+  }
+  
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
 };
 

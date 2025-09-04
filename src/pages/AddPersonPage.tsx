@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import { PersonInfo } from '../types';
@@ -24,6 +24,20 @@ export const AddPersonPage: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Generate automatic personal code on component mount
+  useEffect(() => {
+    const generatePersonalCode = (): string => {
+      const timestamp = Date.now().toString(36).slice(-4).toUpperCase();
+      const random = Math.random().toString(36).slice(-4).toUpperCase();
+      return `PC-${timestamp}-${random}`;
+    };
+
+    if (!formData.personalCode) {
+      const autoCode = generatePersonalCode();
+      setFormData(prev => ({ ...prev, personalCode: autoCode }));
+    }
+  }, []);
 
   const updateField = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -116,6 +130,7 @@ export const AddPersonPage: React.FC = () => {
                 onChange={(value) => updateField('personalCode', value)}
                 required
                 error={errors.personalCode}
+                readOnly={true} // Make it read-only since it's auto-generated
               />
               
               <FormField
