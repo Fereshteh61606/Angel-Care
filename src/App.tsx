@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { AddPersonPage } from './pages/AddPersonPage';
 import { ViewPersonPage } from './pages/ViewPersonPage';
 import { PersonListPage } from './pages/PersonListPage';
+import { EditPersonPage } from './pages/EditPersonPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/add" element={<AddPersonPage />} />
             <Route path="/view/:id" element={<ViewPersonPage />} />
+            <Route path="/edit/:id" element={<EditPersonPage />} />
             <Route path="/list" element={<PersonListPage />} />
           </Routes>
         </Router>

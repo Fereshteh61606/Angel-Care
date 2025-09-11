@@ -12,19 +12,33 @@ export const ViewPersonPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
   const [person, setPerson] = useState<PersonInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) {
-      const foundPerson = getPersonById(id);
-      setPerson(foundPerson);
-    }
-    setLoading(false);
+    const loadPerson = async () => {
+      if (id) {
+        try {
+          const foundPerson = await getPersonById(id);
+          setPerson(foundPerson);
+        } catch (err) {
+          console.error('Error fetching person:', err);
+          setError('Failed to load person');
+        }
+      }
+      setLoading(false);
+    };
+    loadPerson();
   }, [id]);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (person && window.confirm('Are you sure you want to delete this person?')) {
-      deletePersonById(person.id);
-      navigate('/list');
+      try {
+        await deletePersonById(person.id);
+        navigate('/list');
+      } catch (err) {
+        console.error('Error deleting person:', err);
+        alert('Failed to delete person');
+      }
     }
   };
 
@@ -36,11 +50,11 @@ export const ViewPersonPage: React.FC = () => {
     );
   }
 
-  if (!person) {
+  if (error || !person) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">{t.errors.notFound}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">{error || t.errors.notFound}</h1>
           <Link
             to="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold rounded-xl hover:from-teal-600 hover:to-blue-700 transition-all duration-200"
@@ -71,6 +85,12 @@ export const ViewPersonPage: React.FC = () => {
           </div>
           
           <div className="flex gap-2">
+            <Link
+              to={`/edit/${person.id}`}
+              className="p-3 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 transition-all duration-200 shadow-lg hover:shadow-xl border border-blue-200"
+            >
+              <Edit className="w-5 h-5" />
+            </Link>
             <button
               onClick={handleDelete}
               className="p-3 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-all duration-200 shadow-lg hover:shadow-xl border border-red-200"

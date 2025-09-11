@@ -15,18 +15,25 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onAdminLogin }) =>
   const { t } = useLanguage();
   const [userPersons, setUserPersons] = useState<PersonInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadUserData = () => {
-      // For now, we'll show all data to users. In a real app, you'd filter by user ID
-      const data = getPersonsData();
-      setUserPersons(
-        data.sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-      );
-      setLoading(false);
+    const loadUserData = async () => {
+      try {
+        // For now, we'll show all data to users. In a real app, you'd filter by user ID
+        const data = await getPersonsData();
+        setUserPersons(
+          data.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        );
+      } catch (error) {
+        console.error("Error generating QR code for printing:", error);
+        setError("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadUserData();
@@ -120,6 +127,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onAdminLogin }) =>
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-red-600">{error}</div>
       </div>
     );
   }

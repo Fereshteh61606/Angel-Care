@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import { PersonInfo } from '../types';
-import { savePersonInfo } from '../utils/storage';
+import { savePersonInfo, getPersonById } from '../utils/storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FormField } from '../components/FormField';
-import { v4 as uuidv4 } from 'uuid';
 
-export const AddPersonPage: React.FC = () => {
+export const EditPersonPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, isRTL } = useLanguage();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<PersonInfo>>({
     name: '',
     lastName: '',
     address: '',
@@ -22,23 +22,30 @@ export const AddPersonPage: React.FC = () => {
     status: '',
     emergencyNote: '',
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Generate automatic personal code on component mount
   useEffect(() => {
-    const generatePersonalCode = (): string => {
-      const timestamp = Date.now().toString(36).slice(-4).toUpperCase();
-      const random = Math.random().toString(36).slice(-4).toUpperCase();
-      return `PC-${timestamp}-${random}`;
+    const loadPerson = async () => {
+      if (id) {
+        try {
+          const person = await getPersonById(id);
+          if (person) {
+            setFormData(person);
+          } else {
+            alert('Person not found');
+            navigate('/list');
+          }
+        } catch (err) {
+          console.error('Error loading person:', err);
+          alert('Failed to load person');
+        }
+      }
+      setLoading(false);
     };
-
-    if (!formData.personalCode) {
-      const autoCode = generatePersonalCode();
-      setFormData(prev => ({ ...prev, personalCode: autoCode }));
-    }
-  }, []);
+    loadPerson();
+  }, [id, navigate]);
 
   const updateField = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -50,10 +57,10 @@ export const AddPersonPage: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.name.trim()) newErrors.name = t.form.required;
-    if (!formData.lastName.trim()) newErrors.lastName = t.form.required;
-    if (!formData.personalCode.trim()) newErrors.personalCode = t.form.required;
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = t.form.required;
+    if (!formData.name?.trim()) newErrors.name = t.form.required;
+    if (!formData.lastName?.trim()) newErrors.lastName = t.form.required;
+    if (!formData.personalCode?.trim()) newErrors.personalCode = t.form.required;
+    if (!formData.phoneNumber?.trim()) newErrors.phoneNumber = t.form.required;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -67,16 +74,14 @@ export const AddPersonPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const newPerson: PersonInfo = {
-        id: uuidv4(),
+      const updatedPerson: PersonInfo = {
+        id: id!,
         ...formData,
-        createdAt: new Date().toISOString(),
-      };
+        createdAt: formData.createdAt || new Date().toISOString(),
+      } as PersonInfo;
 
-      console.log('Saving person with ID:', newPerson.id); // Debug log
-      await savePersonInfo(newPerson);
-      
-      navigate(`/view/${newPerson.id}`);
+      await savePersonInfo(updatedPerson);
+      navigate(`/view/${id}`);
     } catch (error) {
       console.error('Error saving person:', error);
       alert('Error saving person');
@@ -85,18 +90,26 @@ export const AddPersonPage: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <header className="flex items-center gap-4 mb-8">
           <Link
-            to="/"
+            to="/list"
             className="p-3 bg-white/70 backdrop-blur-sm rounded-xl hover:bg-white/90 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             <ArrowLeft className={`w-5 h-5 text-gray-600 ${isRTL ? 'rotate-180' : ''}`} />
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800">{t.addPerson}</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t.editPerson || 'Edit Person'}</h1>
         </header>
 
         {/* Form */}
@@ -105,7 +118,7 @@ export const AddPersonPage: React.FC = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 label={t.form.name}
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={(value) => updateField('name', value)}
                 required
                 error={errors.name}
@@ -113,7 +126,7 @@ export const AddPersonPage: React.FC = () => {
               
               <FormField
                 label={t.form.lastName}
-                value={formData.lastName}
+                value={formData.lastName || ''}
                 onChange={(value) => updateField('lastName', value)}
                 required
                 error={errors.lastName}
@@ -122,7 +135,7 @@ export const AddPersonPage: React.FC = () => {
 
             <FormField
               label={t.form.address}
-              value={formData.address}
+              value={formData.address || ''}
               onChange={(value) => updateField('address', value)}
               type="textarea"
             />
@@ -130,7 +143,7 @@ export const AddPersonPage: React.FC = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 label={t.form.personalCode}
-                value={formData.personalCode}
+                value={formData.personalCode || ''}
                 onChange={(value) => updateField('personalCode', value)}
                 required
                 error={errors.personalCode}
@@ -139,7 +152,7 @@ export const AddPersonPage: React.FC = () => {
               
               <FormField
                 label={t.form.phoneNumber}
-                value={formData.phoneNumber}
+                value={formData.phoneNumber || ''}
                 onChange={(value) => updateField('phoneNumber', value)}
                 type="tel"
                 required
@@ -149,14 +162,14 @@ export const AddPersonPage: React.FC = () => {
 
             <FormField
               label={t.form.additionalInfo}
-              value={formData.additionalInfo}
+              value={formData.additionalInfo || ''}
               onChange={(value) => updateField('additionalInfo', value)}
               type="textarea"
             />
 
             <FormField
               label={t.form.diseaseOrProblem}
-              value={formData.diseaseOrProblem}
+              value={formData.diseaseOrProblem || ''}
               onChange={(value) => updateField('diseaseOrProblem', value)}
               type="textarea"
             />
@@ -164,13 +177,13 @@ export const AddPersonPage: React.FC = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <FormField
                 label={t.form.status}
-                value={formData.status}
+                value={formData.status || ''}
                 onChange={(value) => updateField('status', value)}
               />
               
               <FormField
                 label={t.form.emergencyNote}
-                value={formData.emergencyNote}
+                value={formData.emergencyNote || ''}
                 onChange={(value) => updateField('emergencyNote', value)}
               />
             </div>
@@ -187,7 +200,7 @@ export const AddPersonPage: React.FC = () => {
               </button>
               
               <Link
-                to="/"
+                to="/list"
                 className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-3 px-6 py-4 bg-gray-500 text-white font-semibold rounded-xl hover:bg-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <X className="w-5 h-5" />

@@ -10,8 +10,9 @@ import { useAdmin } from '../contexts/AdminContext';
 export const PersonListPage: React.FC = () => {
   const { t, isRTL } = useLanguage();
   const { isAdmin } = useAdmin();
-  const [persons, setPersons] = useState<PersonInfo[]>([]);
+  const [persons, setPersons ] = useState<PersonInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Redirect non-admin users
   if (!isAdmin) {
@@ -34,19 +35,30 @@ export const PersonListPage: React.FC = () => {
   }
 
   useEffect(() => {
-    const loadData = () => {
-      const data = getPersonsData();
-      setPersons(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      setLoading(false);
+    const loadData = async () => {
+      try {
+        const data = await getPersonsData();
+        setPersons(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      } catch (err) {
+        console.error('Error loading persons:', err);
+        setError('Failed to load data');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
   }, []);
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
-      deletePersonById(id);
-      setPersons(prev => prev.filter(person => person.id !== id));
+      try {
+        await deletePersonById(id);
+        setPersons(prev => prev.filter(person => person.id !== id));
+      } catch (err) {
+        console.error('Error deleting person:', err);
+        alert('Error deleting person');
+      }
     }
   };
 
@@ -133,10 +145,19 @@ export const PersonListPage: React.FC = () => {
       alert('Error downloading QR code');
     }
   };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-25 to-emerald-50 flex items-center justify-center">
+        <div className="text-red-600">{error}</div>
       </div>
     );
   }
